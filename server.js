@@ -1,9 +1,9 @@
 require('dotenv').config(); // Load environment variables
 
 const express = require('express');
-const authRoutes = require('./authRoutes');
+
 const mongoose = require('mongoose');
-const classroomRoutes = require("./Routes/classroomRoutes")
+const classroomRoutes = require("./classroomRoutes")
 const app = express();
 const cors = require('cors');
 app.use(cors());
