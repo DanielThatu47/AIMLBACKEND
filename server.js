@@ -11,6 +11,11 @@ app.use(express.json())
 app.use("/", classroomRoutes)
 
 
+
+// Root Endpoint
+app.get('/', (req, res) => {
+  res.send('Quiz Generation API is running.');
+});
 const PORT = process.env.PORT || 8000;
  
 mongoose.connect(process.env.MONGODB_URI)
