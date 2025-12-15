@@ -158,7 +158,7 @@ router.post('/generate' , async (req ,res)=>{
     if (!classroom) {
         return res.status(404).json({ message: 'Classroom not found' });
     }
-    const { data } = await axios.post("http://127.0.0.1:5000/generate_questions", {input_text:input_text});
+    const { data } = await axios.post("https://danielthatu12-ezquiz.hf.space/generate_questions", {input_text:input_text});
     console.log(data)
     const updatedClassroom = await Classroom.updateOne({_id:classroom._id},{ $push: { quiz: { heading: heading, questions: data.questions } }  },{new:true})
     // console.log(updatedClassroom)
