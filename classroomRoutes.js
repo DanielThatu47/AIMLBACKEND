@@ -142,33 +142,50 @@ router.get('/classrooms/user/:code' , async (req , res)=>{
 )
 
 
-router.post('/generate' , async (req ,res)=>{
-    try{
-      const {input_text,code , heading} = req.body;
-      console.log(req.body)
-      console.log(input_text)
-    //   const response = await ("http://localhost:5000/generate_questions", {
-    //   method: "POST", // or 'PUT'
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({input_text}),
-    const classroom = await Classroom.findOne({ code: code });
-      
-    if (!classroom) {
-        return res.status(404).json({ message: 'Classroom not found' });
+router.post('/generate', async (req, res) => {
+    try {
+        const { input_text, code, heading } = req.body;
+
+        const classroom = await Classroom.findOne({ code });
+        if (!classroom) {
+            return res.status(404).json({ message: 'Classroom not found' });
+        }
+
+        const hfResponse = await axios.post(
+            "https://danielthatu12-ezquiz.hf.space/generate_questions",
+            { input_text },
+            { timeout: 60000 } // VERY IMPORTANT
+        );
+
+        if (!hfResponse.data || !hfResponse.data.questions) {
+            return res.status(502).json({
+                message: 'AI failed to generate questions'
+            });
+        }
+
+        await Classroom.updateOne(
+            { _id: classroom._id },
+            {
+                $push: {
+                    quiz: {
+                        heading,
+                        questions: hfResponse.data.questions,
+                        assigned: false
+                    }
+                }
+            }
+        );
+
+        const updated = await Classroom.findOne({ code });
+        res.status(201).json({ quiz: updated.quiz });
+
+    } catch (error) {
+        console.error("Generate error:", error.message);
+        res.status(500).json({
+            message: 'Quiz generation failed. Please try again.'
+        });
     }
-    const { data } = await axios.post("https://danielthatu12-ezquiz.hf.space/generate_questions", {input_text:input_text});
-    console.log(data)
-    const updatedClassroom = await Classroom.updateOne({_id:classroom._id},{ $push: { quiz: { heading: heading, questions: data.questions } }  },{new:true})
-    // console.log(updatedClassroom)
-    const quiz = await Classroom.findOne({ code: code });
-    res.status(201).json({quiz})
-    // res.status(201).json({ quiz: quiz.quiz });
-    }catch(error){
-console.log(error)
-    }}
-)
+});
 
 
 router.get('/quizzes/:code', async (req, res) => {
